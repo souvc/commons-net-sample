@@ -5,9 +5,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.SocketException;
 
 /**
@@ -56,7 +54,7 @@ public class FTPClientTest {
     @Test
     public  void  isPositiveCompletion(){
         try {
-            if (!FTPReply.isPositiveCompletion(ftp.getReplyCode())) {
+            if (!FTPReply.isPositiveCompletion(ftp.getReplyCode())) {//获取返回码，判断是否连接
                 System.out.println("未连接到FTP，用户名或密码错误。");
                 ftp.disconnect();
             } else {
@@ -71,6 +69,7 @@ public class FTPClientTest {
         }
 
     }
+
 
 
     /**
@@ -94,16 +93,8 @@ public class FTPClientTest {
 
 
     /***
-     * #################登陆ftp服务器目录操作相关的方法#################################################################
+     * #################ftp服务器目录操作相关的方法#################################################################
      */
-
-    /**
-     * 取得当前文件夹
-     */
-    @Test
-    public void currentDirectory() throws IOException {
-
-    }
 
 
     /**
@@ -229,16 +220,17 @@ public class FTPClientTest {
 
 
     /***
-     * #################登陆ftp服务器文件操作相关的方法#################################################################
+     * #################ftp服务器文件操作相关的方法#################################################################
      */
 
 
     /**
-     * 设置传输文件的类型[文本文件或者二进制文件  设置传输模式
+     * 设置传输文件的类型[文本文件或者二进制文件  设置传输模式  设置文件传输类型
      */
     @Test
     public  void setFileType() throws IOException {
          ftp.setFileType(FTP.BINARY_FILE_TYPE);
+         ftp.setFileType(FTPClient.ASCII_FILE_TYPE);
     }
 
     /**
@@ -280,16 +272,6 @@ public class FTPClientTest {
 
 
     /**
-     * 列出指定目录下全部文件
-     */
-    @Test
-    public  void  list() throws IOException {
-        ftp.changeWorkingDirectory("/mulu");
-
-    }
-
-
-    /**
      * 指定解析类
      */
     @Test
@@ -307,7 +289,6 @@ public class FTPClientTest {
 
     /**
      * 指定显示数量
-     * @throws IOException
      */
     @Test
     public  void   getNext2() throws IOException {
@@ -321,6 +302,8 @@ public class FTPClientTest {
         }
         //  }
     }
+
+
 
 
     /**
@@ -348,6 +331,17 @@ public class FTPClientTest {
         ftp.setFileType(FTPClient.BINARY_FILE_TYPE);
         boolean temp = ftp.storeFile(new String("QQ20161123201137.png".getBytes("UTF-8"),"iso-8859-1"), fis);//编码转换
         System.out.println("temp-------"+temp);
+    }
+
+    /**
+     * 上传文件
+     */
+    @Test
+    public  void  storeFileDir() throws IOException {
+        String localAbsoluteFile="d:/abcd/event.txt";//本地绝对路径
+        String remoteAbsoluteFile="abc.txt"; //ftp目录路径
+        InputStream input = new FileInputStream(new File(localAbsoluteFile));
+        ftp.storeFile(remoteAbsoluteFile, input);// 处理传输
     }
 
 
@@ -394,6 +388,39 @@ public class FTPClientTest {
     }
 
 
+    /**
+     * 批量删除文件
+     */
+    @Test
+    public  void   delFiles() throws IOException {
+        String[] delFiles = ftp.listNames("/user");
+        for (String s : delFiles) {
+            ftp.deleteFile(s);
+        }
+    }
 
+
+
+    /**
+     * 去 服务器的FTP路径下上读取文件
+     */
+    @Test
+    public void readConfigFileForFTP() throws IOException {
+            ftp.setControlEncoding("UTF-8"); // 中文支持
+            //ftp.setFileType(FTPClient.BINARY_FILE_TYPE);
+            //ftp.enterLocalPassiveMode();
+            //ftp.changeWorkingDirectory("/");
+
+            InputStream in = ftp.retrieveFileStream("/user/event2.txt");//ftp服务器路径
+            byte[] inOutb = new byte[in.available()]; //通过available方法取得流的最大字符数
+            in.read(inOutb);  //读入流,保存在byte数组
+
+            FileOutputStream outStream = new FileOutputStream("d:/abcd/event3.txt");//本地路径
+            outStream.write(inOutb);
+
+            in.close();
+            outStream.close();
+
+        }
 
 }
